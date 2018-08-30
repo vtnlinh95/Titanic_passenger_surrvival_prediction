@@ -34,10 +34,10 @@ def calculate_entropy(original_data, feature, value):
     pyes = -(num_survived / total) * math.log(num_survived / total, 2)
     pno = -(num_not_survived / total) * math.log(num_not_survived / total, 2)
     pt = total / original_data.shape[0]
-    return pyes + pno + pt
+    return (pyes + pno) * pt
 
 
-def find_tree(original_data):
+def find_tree(root_entropy, original_data):
     count_survived = original_data[original_data['Survived'] == 1].shape[0]
     count_not_survived = original_data[original_data['Survived'] == 0].shape[0]
     if count_survived == 0:
@@ -49,28 +49,28 @@ def find_tree(original_data):
     list_features = list(original_data.columns.values)
     list_features.remove('Survived')
     max_feature = None
-    max_entropy = -1
+    max_gain = -1
+    max_entropy = 0
     for feature in list_features:
         list_values = original_data[feature].unique()
+        entropy = 0
         for value in list_values:
-            entropy = calculate_entropy(original_data, feature, value)
-            entropy = root_entropy - entropy
-            if entropy > max_entropy:
-                max_entropy = entropy
-                max_feature = feature
-    if max_feature is None:
-        print "Cannot decide"
-        return
+            entropy += calculate_entropy(original_data, feature, value)
+        gain = root_entropy - entropy
+        if gain > max_gain:
+            max_feature = feature
+            max_entropy = entropy
     for value in original_data[max_feature].unique():
         new_data = original_data.copy()
         new_data = new_data[new_data[max_feature] == value]
         new_data = new_data.drop(max_feature, axis=1)
-        features = list(original_data.columns.values)
+        features = list(new_data.columns.values)
         if len(features) == 1 and features[0] == 'Survived':
+            print "Can not decide"
             continue
         print max_feature
         print value
-        find_tree(new_data)
+        find_tree(max_entropy, new_data)
     return
 
 
@@ -148,8 +148,9 @@ test_data = test_data[test_data['Age'] == 3]
 outcomes = test_data['Survived']
 original_data.head()
 root_entropy = calculate_entropy(original_data, feature=None, value=None)
-#find_tree(original_data)
-predictions = predict_for_passenger_in_thrities(test_data)
-predictions.reset_index(drop=True)
-outcomes.reset_index(drop=True)
-print(accuracy_score(outcomes, predictions, "Passenger in Thirties"))
+find_tree(root_entropy, original_data)
+# predictions = predict_for_passenger_in_thrities(test_data)
+# predictions.reset_index(drop=True)
+# outcomes.reset_index(drop=True)
+# print(accuracy_score(outcomes, predictions, "Passenger in Thirties"))
+arr1 = np.arra
