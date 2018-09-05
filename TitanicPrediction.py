@@ -1,10 +1,6 @@
-import numpy as np
 import operator
 import pandas as pd
 import math as math
-import seaborn as sns
-import random
-from titanic_visualizations import survival_stats
 
 # Class Node which will be used while classify a test-instance using the tree which was built earlier
 class Node():
@@ -69,7 +65,7 @@ def find_tree(original_data):
             max_feature = feature
             max_gain = gain
     tree = {max_feature: {}}
-    for value in full_data[max_feature].unique():
+    for value in original_data[max_feature].unique():
         new_data = original_data.copy()
         new_data = new_data[new_data[max_feature] == value]
         new_data = new_data.drop(max_feature, axis=1)
@@ -92,20 +88,12 @@ def find_tree(original_data):
 in_file = 'train.csv'
 full_data = pd.read_csv(in_file)
 full_data = full_data.drop('PassengerId', axis=1)
-full_data = full_data.drop('Name', axis=1)
 full_data = full_data.drop('Ticket', axis=1)
 full_data = full_data.drop('Pclass', axis=1)
 full_data = full_data.drop('Age', axis=1)
 full_data = full_data.drop('Sex', axis=1)
-full_data = full_data.dropna()
-# full_data.loc[operator.__and__(0.0 <= full_data.Age, full_data.Age <= 10.0), 'Age'] = 0
-# full_data.loc[operator.__and__(11.0 <= full_data.Age, full_data.Age <= 20.0), 'Age'] = 1
-# full_data.loc[operator.__and__(21.0 <= full_data.Age, full_data.Age <= 30.0), 'Age'] = 2
-# full_data.loc[operator.__and__(31.0 <= full_data.Age, full_data.Age <= 40.0), 'Age'] = 3
-# full_data.loc[operator.__and__(41.0 <= full_data.Age, full_data.Age <= 50.0), 'Age'] = 4
-# full_data.loc[operator.__and__(51.0 <= full_data.Age, full_data.Age <= 60.0), 'Age'] = 5
-# full_data.loc[operator.__and__(61.0 <= full_data.Age, full_data.Age <= 70.0), 'Age'] = 6
-# full_data.loc[operator.__and__(71.0 <= full_data.Age, full_data.Age <= 80.0), 'Age'] = 7
+
+full_data['Cabin'].fillna('U', inplace=True)
 
 full_data.loc[operator.__and__(0.0 <= full_data.Fare, full_data.Fare <= 100.0), 'Fare'] = 1
 full_data.loc[operator.__and__(101.0 <= full_data.Fare, full_data.Fare <= 200.0), 'Fare'] = 2
@@ -113,6 +101,30 @@ full_data.loc[operator.__and__(201.0 <= full_data.Fare, full_data.Fare <= 300.0)
 full_data.loc[operator.__and__(301.0 <= full_data.Fare, full_data.Fare <= 400.0), 'Fare'] = 4
 full_data.loc[operator.__and__(401.0<= full_data.Fare, full_data.Fare <= 500.0), 'Fare'] = 5
 full_data.loc[501.0 <= full_data.Fare, 'Fare'] = 6
+
+full_data['Name'] = full_data['Name'].map(lambda name: name.split(',')[1].split('.')[0].strip())
+Title_Dictionary = {
+                    "Capt":       "Officer",
+                    "Col":        "Officer",
+                    "Major":      "Officer",
+                    "Jonkheer":   "Royalty",
+                    "Don":        "Royalty",
+                    "Sir" :       "Royalty",
+                    "Dr":         "Officer",
+                    "Rev":        "Officer",
+                    "the Countess":"Royalty",
+                    "Dona":       "Royalty",
+                    "Mme":        "Mrs",
+                    "Mlle":       "Miss",
+                    "Ms":         "Mrs",
+                    "Mr" :        "Mr",
+                    "Mrs" :       "Mrs",
+                    "Miss" :      "Miss",
+                    "Master" :    "Master",
+                    "Lady" :      "Royalty"
+
+                    }
+full_data['Name'] = full_data.Name.map(Title_Dictionary)
 
 full_data['Cabin'] = full_data['Cabin'].apply(lambda cabin : cabin[:1])
 
